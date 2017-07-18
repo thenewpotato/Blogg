@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <EditText
+        android:id="@+id/subject"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="top"
+        android:hint="@string/label_subject"
+        android:imeOptions="actionDone|flagNoEnterAction"
+        android:inputType="textAutoCorrect|textCapSentences"
+        android:maxLines="1" />
+
+    <include layout="@layout/horizontal_separator" />
+
+    <com.onegravity.rteditor.RTEditText
+        android:id="@+id/rtEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="top"
+        android:hint="@string/label_message"
+        android:imeOptions="actionDone|flagNoEnterAction"
+        android:inputType="textMultiLine|textAutoCorrect|textCapSentences" />
+
+</LinearLayout>

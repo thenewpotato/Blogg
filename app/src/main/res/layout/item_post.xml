@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:descendantFocusability="blocksDescendants"
+    android:layout_height="match_parent">
+
+    <!-- the alignParentRight and layout_toLeftOf combination ensures that ImageView takes
+        the space it needs, and LinearLayout just takes the remaining to the left of it-->
+
+    <ImageView
+        android:id="@+id/iv_schedule_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:visibility="gone"
+        android:src="@drawable/ic_alarm_black_24dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_toLeftOf="@+id/iv_schedule_indicator"
+        android:weightSum="100">
+
+        <!-- this textview's width needs to be match_parent
+            otherwise width assigned to the entire LinearLayout would be the width
+            of the title text, which may not be long enough for dates or tags-->
+        <TextView
+            android:id="@+id/textview_title_listview_item_post"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="50"
+            android:ellipsize="end"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+            android:maxLines="1"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_weight="50">
+
+            <TextView
+                android:id="@+id/textview_updatetime_listview_item_post"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:maxLines="1"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

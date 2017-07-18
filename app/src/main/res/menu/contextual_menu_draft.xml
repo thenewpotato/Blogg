@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/item_delete"
+        android:icon="@drawable/ic_delete_white_24dp"
+        app:showAsAction="ifRoom|withText"
+        android:title="@string/text_delete"
+        android:titleCondensed="@string/text_delete">
+    </item>
+
+    <item
+        android:id="@+id/item_post"
+        android:icon="@drawable/ic_cloud_done_white_24dp"
+        app:showAsAction="ifRoom|withText"
+        android:title="@string/text_post"
+        android:titleCondensed="@string/text_post">
+    </item>
+
+</menu>

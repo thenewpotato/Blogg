@@ -1,0 +1,88 @@
+<resources>
+    <string name="app_name">Blogg</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+
+    <string name="label_subject">Subject</string>
+    <string name="label_message">Post content</string>
+    <string name="label_signature">Signature</string>
+
+    <string name="menu_save">Save</string>
+    <string name="menu_load">Load</string>
+    <string name="menu_dark_theme">Dark theme</string>
+    <string name="menu_light_theme">Light theme</string>
+    <string name="menu_single_toolbar">Single toolbar</string>
+    <string name="menu_split_toolbar">Split toolbar</string>
+    <string name="menu_fragment">Use Fragment</string>
+    <string name="menu_activity">Use Activity</string>
+
+    <string name="save_as">Save as…</string>
+    <string name="save_as_success">Text saved as %s</string>
+    <string name="save_as_failure">Text could not be saved: %s</string>
+    <string name="load_failure_1">This isn\'t a valid rich text editor file</string>
+    <string name="load_failure_2">This isn\'t a valid rich text editor file: %s</string>
+
+    <string name="permission_denied">Permission denied</string>
+    <string name="permission_denied_storage">Without this permission you can\'t insert camera pictures. Are you sure you want to deny this permission?</string>
+    <string name="permission_deny">Deny</string>
+    <string name="permission_retry">Re-try</string>
+
+    <string name="no_file_picker">There\'s no app installed to handle picking a directory: %s</string>
+    <string name="title_activity_edit">Edit Post</string>
+    <string name="title_activity_comment">Comment Details</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="text_more">More....</string>
+    <string name="text_published">Published</string>
+    <string name="text_drafts">Drafts</string>
+    <string name="text_activities">Activities</string>
+    <string name="text_app_settings">App Settings</string>
+    <string name="text_seven_days">7 Days: </string>
+    <string name="text_thirty_days">30 Days: </string>
+    <string name="text_alls">All time: </string>
+    <string name="text_views">  view(s)</string>
+    <string name="text_default_frag">Default Startup Fragment: </string>
+    <string name="text_default_sort">Default Sort Mode: </string>
+    <string name="text_delete">Delete</string>
+    <string name="text_post">Post</string>
+    <string name="text_date">Date</string>
+    <string name="text_now">Now</string>
+    <string name="text_publish_now">Publish this post right now</string>
+    <string name="text_schedule_post">Schedule this post at the following time:</string>
+    <string name="text_about_1">This app is an open source project on GitHub developed by Tiger Wang (thenewpotato). \n Thank you for trying out this app, have a great day! \n ©Tiger Wang, 2017</string>
+
+    <string name="notif_blank_post">Post has no content!</string>
+    <string name="notif_error_occured">An error has occured!</string>
+
+    <string name="title_sort">Sort</string>
+    <string name="title_a_to_z">A to Z</string>
+    <string name="title_z_to_a">Z to A</string>
+    <string name="title_newest">Newest</string>
+    <string name="title_oldest">Oldest</string>
+    <string name="title_save_draft">Save Draft</string>
+    <string name="title_save_changes">Save Changes</string>
+    <string name="title_publish">Publish</string>
+    <string name="title_about">About</string>
+
+    <string-array name="entries_default_frag">
+        <item>Posts</item>
+        <item>Drafts</item>
+        <item>Activities</item>
+        <item>App Settings</item>
+        <item>About</item>
+    </string-array>
+    <string-array name="entries_default_sort">
+        <item>A to Z</item>
+        <item>Z to A</item>
+        <item>Newest</item>
+        <item>Oldest</item>
+    </string-array>
+
+</resources>
