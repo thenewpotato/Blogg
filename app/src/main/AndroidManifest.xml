@@ -24,7 +24,8 @@
         </activity>
         <activity android:name=".EditActivity" />
         <activity android:name=".AddActivity" />
-        <activity android:name=".CommentActivity"></activity>
+        <activity android:name=".CommentActivity" />
+        <activity android:name="com.onegravity.rteditor.media.choose.MediaChooserActivity" />
     </application>
 
 </manifest>

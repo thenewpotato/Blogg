@@ -70,7 +70,7 @@ public class EditActivity extends BaseEditActivity {
 
     @Override
     protected String getSubjectHint(){
-        // hint is not necessary for that title is be defined
+        // hint is not necessary for that title is defined
         return null;
     }
 

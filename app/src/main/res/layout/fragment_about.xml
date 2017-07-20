@@ -5,10 +5,50 @@
     tools:context="values.AboutFragment">
 
     <TextView
+        android:id="@+id/tv_about_1"
         android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Small"
+        android:text="@string/text_about_1" />
+
+    <Space
+        android:id="@+id/tv_spacing_about"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="10dp"
+        android:layout_below="@+id/tv_about_1" />
+
+    <TextView
+        android:id="@+id/tv_about_2"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
-        android:text="@string/text_about" />
+        android:layout_below="@+id/tv_spacing_about"
+        android:text="@string/text_about_2" />
+
+    <TextView
+        android:id="@+id/tv_about_3"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+        android:layout_below="@+id/tv_about_2"
+        android:text="@string/text_about_3" />
+
+    <TextView
+        android:id="@+id/tv_about_10"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+        android:layout_below="@+id/tv_about_3"
+        android:text="@string/text_about_10" />
+
+    <Space
+        android:id="@+id/tv_spacing_about_2"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_below="@+id/tv_about_10" />
 
 </RelativeLayout>

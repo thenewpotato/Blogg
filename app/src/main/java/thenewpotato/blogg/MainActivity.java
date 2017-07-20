@@ -2,11 +2,11 @@ package thenewpotato.blogg;
 
 import android.accounts.Account;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -46,7 +46,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.common.api.Status;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.blogger.Blogger;
@@ -57,14 +56,15 @@ import com.google.api.services.blogger.model.CommentList;
 import com.google.api.services.blogger.model.Pageviews;
 import com.google.api.services.blogger.model.Post;
 import com.google.api.services.blogger.model.PostList;
-import com.onegravity.rteditor.api.format.RTFormat;
+import com.onegravity.rteditor.utils.io.FilenameUtils;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 
 import thenewpotato.blogg.managers.PostsAdapter;
 import thenewpotato.blogg.managers.SharedPreferencesManager;
@@ -94,7 +94,6 @@ import static thenewpotato.blogg.Tools.log;
 import static thenewpotato.blogg.Tools.loge;
 import static thenewpotato.blogg.objects.Post.STATUS_DRAFT;
 import static thenewpotato.blogg.objects.Post.STATUS_LIVE;
-import static thenewpotato.blogg.objects.Post.STATUS_SCHEDULED;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener,
@@ -525,6 +524,33 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    // from StackOverflow, @Brijesh Thakur, https://stackoverflow.com/users/898459/brijesh-thakur
+    private String getLocalPath(Bitmap bitmap, String filename) {
+        ContextWrapper cw = new ContextWrapper(getApplicationContext());
+        // path to /data/data/yourapp/app_data/imageDir
+        File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
+        // Create imageDir
+        File mypath=new File(directory, filename);
+
+        log(directory.toString() + " " + filename);
+
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(mypath);
+            // Use the compress method on the BitMap object to write image to the OutputStream
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                fos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return directory.getAbsolutePath() + "/" + filename;
+    }
+
     private class SignOutTask extends AsyncTask<Void, Void, Void>{
         private ProgressDialog progressDialog;
         GoogleApiClient mGoogleApiClient;
@@ -952,7 +978,25 @@ public class MainActivity extends AppCompatActivity
                 post = postsGetAction.execute();
                 content = post.getContent();
             }catch (IOException e){
-                loge("733: " + e.getMessage());
+                log(e.getMessage());
+            }
+
+            // this block handles any images in the content html code
+            // it downloads the image and transfer it to a local source (since RTEditor does not download images for you)
+            int start = content.indexOf("src=\"") + 5;
+            int end = content.indexOf("\"", start);
+            while(start >= 5) {
+                String src = content.substring(start, end);
+                Bitmap bitmap = null;
+                try {
+                    InputStream in = new java.net.URL(src).openStream();
+                    bitmap = BitmapFactory.decodeStream(in);
+                } catch (Exception e) {
+                    loge(e.getMessage());
+                }
+                content = content.replace(src, getLocalPath(bitmap, FilenameUtils.getName(src)));
+                start = content.indexOf("src=\"", start+1) + 5;
+                end = content.indexOf("\"", start);
             }
 
             log(content);

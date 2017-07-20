@@ -56,7 +56,10 @@
     <string name="text_now">Now</string>
     <string name="text_publish_now">Publish this post right now</string>
     <string name="text_schedule_post">Schedule this post at the following time:</string>
-    <string name="text_about_1">This app is an open source project on GitHub developed by Tiger Wang (thenewpotato). \n Thank you for trying out this app, have a great day! \n ©Tiger Wang, 2017</string>
+    <string name="text_about_1">thenewpotato.blogg</string>
+    <string name="text_about_2">Developed by Tiger Wang(@thenewpotato)</string>
+    <string name="text_about_3">Released under the Apache 2.0 License</string>
+    <string name="text_about_10">© 2017 Tiger Wang</string>
 
     <string name="notif_blank_post">Post has no content!</string>
     <string name="notif_error_occured">An error has occured!</string>

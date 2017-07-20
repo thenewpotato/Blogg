@@ -20,6 +20,7 @@ import com.onegravity.rteditor.RTToolbar;
 import com.onegravity.rteditor.api.RTApi;
 import com.onegravity.rteditor.api.RTMediaFactoryImpl;
 import com.onegravity.rteditor.api.RTProxyImpl;
+import com.onegravity.rteditor.api.format.RTFormat;
 
 import static thenewpotato.blogg.Tools.log;
 
