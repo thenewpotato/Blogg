@@ -12,21 +12,21 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.PopupMenu;
-import android.util.SparseArray;
-import android.util.TypedValue;
-import android.view.Gravity;
-import android.view.View;
 import android.support.design.widget.NavigationView;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
+import android.util.SparseArray;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -117,6 +117,7 @@ public class MainActivity extends AppCompatActivity
     FrameLayout framelayoutMain;
     ArrayAdapter<String> arrayadapterSpinner;
     NavigationView navigationView;
+    DrawerLayout drawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -139,7 +140,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
@@ -250,15 +251,24 @@ public class MainActivity extends AppCompatActivity
         // putting it in onCreate prevents the overloading of spinner menu and redundant refresh when user returns
         // to MainActivity from Edit/AddActivity
         // this placement **might** cause other problems though
-        OptionalPendingResult<GoogleSignInResult> optionalPendingResult = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
-        if(optionalPendingResult.isDone()){
-            Tools.log("OptionalPendingResult: WTF?!? HOW DID THIS CONNECT?!? (SUCCESS)");
-            GoogleSignInResult result = optionalPendingResult.get();
-            handleSignInResult(result);
-        } else{
-            loge("OptionalPendingResult: FAILED!");
-            showDeauthenticatedUI();
-            drawer.openDrawer(Gravity.START);
+        OptionalPendingResult<GoogleSignInResult> pendingResult =
+                Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
+        if (pendingResult.isDone()) {
+            // There's immediate result available.
+            handleSignInResult(pendingResult.get());
+        } else {
+            // There's no immediate result ready, displays some progress indicator and waits for the
+            // async callback.
+            final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+            progressDialog.setMessage("Signing in...");
+            progressDialog.show();
+            pendingResult.setResultCallback(new ResultCallback<GoogleSignInResult>() {
+                @Override
+                public void onResult(@NonNull GoogleSignInResult result) {
+                    handleSignInResult(result);
+                    progressDialog.dismiss();
+                }
+            });
         }
     }
 
@@ -405,13 +415,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void handleSignInResult(GoogleSignInResult googleSignInResult){
-        googleSignInAccount = googleSignInResult.getSignInAccount();
-        if(googleSignInAccount != null) {
-            mAuthorizedAccount = googleSignInAccount.getAccount();
+        if (googleSignInResult.isSuccess()) {
+            googleSignInAccount = googleSignInResult.getSignInAccount();
+            if (googleSignInAccount != null) {
+                mAuthorizedAccount = googleSignInAccount.getAccount();
+            }
+            showAuthenticatedUI();
+
+            GetListOfBlogTask task = new GetListOfBlogTask(mAuthorizedAccount);
+            task.execute();
+        } else {
+            showDeauthenticatedUI();
+            drawer.openDrawer(Gravity.START);
         }
-        showAuthenticatedUI();
-        GetListOfBlogTask task = new GetListOfBlogTask(mAuthorizedAccount);
-        task.execute();
     }
 
     private void loadFragment(int fragmentId){
