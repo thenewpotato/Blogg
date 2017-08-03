@@ -58,6 +58,10 @@ import com.google.api.services.blogger.model.Post;
 import com.google.api.services.blogger.model.PostList;
 import com.onegravity.rteditor.utils.io.FilenameUtils;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -540,7 +544,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    // from StackOverflow, @Brijesh Thakur, https://stackoverflow.com/users/898459/brijesh-thakur
+    // by https://stackoverflow.com/users/898459/brijesh-thakur
     private String getLocalPath(Bitmap bitmap, String filename) {
         ContextWrapper cw = new ContextWrapper(getApplicationContext());
         // path to /data/data/yourapp/app_data/imageDir
@@ -560,8 +564,8 @@ public class MainActivity extends AppCompatActivity
         } finally {
             try {
                 fos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                loge(e.getMessage());
             }
         }
         return directory.getAbsolutePath() + "/" + filename;
@@ -999,25 +1003,23 @@ public class MainActivity extends AppCompatActivity
 
             // this block handles any images in the content html code
             // it downloads the image and transfer it to a local source (since RTEditor does not download images for you)
-            int start = content.indexOf("src=\"") + 5;
-            int end = content.indexOf("\"", start);
-            while(start >= 5) {
-                String src = content.substring(start, end);
+            Document htmlDocument = Jsoup.parse(content);
+            for (Element imgElement : htmlDocument.select("img")) {
+                String imgUrl = imgElement.attr("src");
                 Bitmap bitmap = null;
                 try {
-                    InputStream in = new java.net.URL(src).openStream();
+                    InputStream in = new java.net.URL(imgUrl).openStream();
                     bitmap = BitmapFactory.decodeStream(in);
                 } catch (Exception e) {
                     loge(e.getMessage());
                 }
-                content = content.replace(src, getLocalPath(bitmap, FilenameUtils.getName(src)));
-                start = content.indexOf("src=\"", start+1) + 5;
-                end = content.indexOf("\"", start);
+                String imgLocalSrc = getLocalPath(bitmap, FilenameUtils.getName(imgUrl));
+                imgElement.attr("src", imgLocalSrc);
             }
 
-            log(content);
+            log(htmlDocument.html());
 
-            return content;
+            return htmlDocument.html();
         }
 
         // the main function of this onPostExecute is to launch the updating post screen
