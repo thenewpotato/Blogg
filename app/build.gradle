@@ -43,5 +43,7 @@ dependencies {
     compile 'com.android.support:support-v4:25.3.1'
     compile 'com.1gravity:android-rteditor:1.6.2'
     compile 'org.jsoup:jsoup:1.10.3'
+    compile 'cz.msebera.android:httpclient:4.4.1.2'
+    compile 'commons-io:commons-io:2.5'
     testCompile 'junit:junit:4.12'
 }

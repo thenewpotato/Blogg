@@ -58,18 +58,31 @@ import com.google.api.services.blogger.model.Post;
 import com.google.api.services.blogger.model.PostList;
 import com.onegravity.rteditor.utils.io.FilenameUtils;
 
+import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.client.HttpClient;
+import cz.msebera.android.httpclient.client.methods.HttpPost;
+import cz.msebera.android.httpclient.entity.ByteArrayEntity;
+import cz.msebera.android.httpclient.impl.client.HttpClientBuilder;
+import cz.msebera.android.httpclient.util.EntityUtils;
 import thenewpotato.blogg.managers.PostsAdapter;
 import thenewpotato.blogg.managers.SharedPreferencesManager;
 import values.AboutFragment;
@@ -102,6 +115,11 @@ import static thenewpotato.blogg.objects.Post.STATUS_LIVE;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener,
         View.OnClickListener, PostsAdapter.activity {
+
+    private static final String IMAGE_TYPE_JPEG = "image/jpeg";
+    private static final String IMAGE_TYPE_BMP = "image/bmp";
+    private static final String IMAGE_TYPE_GIF = "image/gif";
+    private static final String IMAGE_TYPE_PNG = "image/png";
 
     GoogleApiClient mGoogleApiClient;
     public static Account mAuthorizedAccount;
@@ -244,7 +262,7 @@ public class MainActivity extends AppCompatActivity
         GoogleSignInOptions googleSignInOptions =
                 new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestEmail()
-                        .requestScopes(new Scope("https://www.googleapis.com/auth/blogger"))
+                        .requestScopes(new Scope("https://www.googleapis.com/auth/blogger"), new Scope("https://picasaweb.google.com/data/"))
                         .build();
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .enableAutoManage(this, this)
@@ -571,6 +589,28 @@ public class MainActivity extends AppCompatActivity
         return directory.getAbsolutePath() + "/" + filename;
     }
 
+    private String getImageType(String imagePath){
+        if (imagePath == null) {
+            return null;
+        }
+        String mImageType = imagePath.substring(imagePath.lastIndexOf("."));
+        log("ImageType = " + mImageType);
+        switch (mImageType) {
+            case ".jpg":
+                return IMAGE_TYPE_JPEG;
+            case ".jpeg":
+                return IMAGE_TYPE_JPEG;
+            case ".png":
+                return IMAGE_TYPE_PNG;
+            case ".bmp":
+                return IMAGE_TYPE_BMP;
+            case ".gif":
+                return IMAGE_TYPE_GIF;
+            default:
+                return null;
+        }
+    }
+
     private class SignOutTask extends AsyncTask<Void, Void, Void>{
         private ProgressDialog progressDialog;
         GoogleApiClient mGoogleApiClient;
@@ -641,7 +681,7 @@ public class MainActivity extends AppCompatActivity
                         );
                 googleAccountCredential.setSelectedAccount(mAccount);
                 Blogger service = new Blogger.Builder(HTTP_TRANSPORT, JSON_FACTORY, googleAccountCredential)
-                        .setApplicationName("Blogger")
+                        .setApplicationName("Blogg")
                         .setHttpRequestInitializer(googleAccountCredential)
                         .build();
                 Blogger.Blogs.ListByUser blogListByUser = service.blogs().listByUser("self");
@@ -733,7 +773,7 @@ public class MainActivity extends AppCompatActivity
                         );
                 googleAccountCredential.setSelectedAccount(mAccount);
                 Blogger service = new Blogger.Builder(HTTP_TRANSPORT, JSON_FACTORY, googleAccountCredential)
-                        .setApplicationName("Blogger")
+                        .setApplicationName("Blogg")
                         .setHttpRequestInitializer(googleAccountCredential)
                         .build();
                 Blogger.Posts.List postsListAction;
@@ -804,7 +844,7 @@ public class MainActivity extends AppCompatActivity
                     );
             googleAccountCredential.setSelectedAccount(mAccount);
             Blogger service = new Blogger.Builder(HTTP_TRANSPORT, JSON_FACTORY, googleAccountCredential)
-                    .setApplicationName("Blogger")
+                    .setApplicationName("Blogg")
                     .setHttpRequestInitializer(googleAccountCredential)
                     .build();
             for(int i = 0; i < passed.size(); i++){
@@ -859,7 +899,7 @@ public class MainActivity extends AppCompatActivity
                     );
             googleAccountCredential.setSelectedAccount(mAccount);
             Blogger service = new Blogger.Builder(HTTP_TRANSPORT, JSON_FACTORY, googleAccountCredential)
-                    .setApplicationName("Blogger")
+                    .setApplicationName("Blogg")
                     .setHttpRequestInitializer(googleAccountCredential)
                     .build();
             for(int i = 0; i < passed.size(); i++){
@@ -913,17 +953,76 @@ public class MainActivity extends AppCompatActivity
             GoogleAccountCredential googleAccountCredential =
                     GoogleAccountCredential.usingOAuth2(
                             MainActivity.this,
-                            Collections.singleton(
-                                    "https://www.googleapis.com/auth/blogger")
+                            Arrays.asList("https://www.googleapis.com/auth/blogger",
+                                    "https://picasaweb.google.com/data/")
                     );
             googleAccountCredential.setSelectedAccount(mAccount);
             Blogger service = new Blogger.Builder(HTTP_TRANSPORT, JSON_FACTORY, googleAccountCredential)
-                    .setApplicationName("Blogger")
+                    .setApplicationName("Blogg")
                     .setHttpRequestInitializer(googleAccountCredential)
                     .build();
+
+            String mAccessToken = "";
+            try {
+                mAccessToken = googleAccountCredential.getToken();
+                log("Access token = " + mAccessToken);
+            } catch (Exception e){
+                loge(e.getMessage());
+            }
+
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpPost httpPost = new HttpPost("https://picasaweb.google.com/data/feed/api/user/default/albumid/default");
+            httpPost.addHeader("Authorization",  "Bearer " + mAccessToken);
+
+            Document htmlDocument = Jsoup.parse(html);
+            for (Element imgElement : htmlDocument.select("img")) {
+                String imgLocalSrc = imgElement.attr("src");
+                byte[] imageContent;
+                File image = new File(imgLocalSrc);
+                try {
+                    imageContent = FileUtils.readFileToByteArray(image);
+                } catch (IOException e){
+                    loge(e.getMessage());
+                    return null;
+                }
+
+                httpPost.addHeader("Content-Type", getImageType(imgLocalSrc));
+                // "Slug" header sets the file name of the uploaded image
+                httpPost.addHeader("Slug", image.getName());
+
+                String xmlResponse = "";
+                try {
+                    httpPost.setEntity(new ByteArrayEntity(imageContent));
+                    HttpResponse httpResponse = httpClient.execute(httpPost);
+                    xmlResponse = EntityUtils.toString(httpResponse.getEntity());
+                    log(xmlResponse);
+                } catch (IOException e){
+                    loge(e.getMessage());
+                }
+
+                // by https://stackoverflow.com/users/1818911/su
+                String uploadedImageUrl = "";
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder builder;
+                InputSource source;
+                try {
+                    builder = factory.newDocumentBuilder();
+                    source = new InputSource(new StringReader(xmlResponse));
+                    org.w3c.dom.Document doc = builder.parse(source);
+                    NodeList list = doc.getElementsByTagName("media:content");
+                    uploadedImageUrl = list.item(0).getAttributes().getNamedItem("url").getNodeValue();
+                } catch (Exception e){
+                    loge(e.getMessage());
+                }
+                log(uploadedImageUrl);
+
+                imgElement.attr("src", uploadedImageUrl);
+            }
+
             Post content = new Post();
             content.setTitle(title);
-            content.setContent(html);
+            log(htmlDocument.html());
+            content.setContent(htmlDocument.html());
             try {
                 Blogger.Posts.Insert postInsertAction;
                 if(!mIsDraft) {
@@ -986,7 +1085,7 @@ public class MainActivity extends AppCompatActivity
                     );
             googleAccountCredential.setSelectedAccount(mAccount);
             Blogger service = new Blogger.Builder(HTTP_TRANSPORT, JSON_FACTORY, googleAccountCredential)
-                    .setApplicationName("Blogger")
+                    .setApplicationName("Blogg")
                     .setHttpRequestInitializer(googleAccountCredential)
                     .build();
             Post post;
@@ -1063,21 +1162,80 @@ public class MainActivity extends AppCompatActivity
             GoogleAccountCredential googleAccountCredential =
                     GoogleAccountCredential.usingOAuth2(
                             MainActivity.this,
-                            Collections.singleton(
-                                    "https://www.googleapis.com/auth/blogger")
+                            Arrays.asList("https://www.googleapis.com/auth/blogger",
+                                    "https://picasaweb.google.com/data/")
                     );
             googleAccountCredential.setSelectedAccount(mAccount);
             Blogger service = new Blogger.Builder(HTTP_TRANSPORT, JSON_FACTORY, googleAccountCredential)
-                    .setApplicationName("Blogger")
+                    .setApplicationName("Blogg")
                     .setHttpRequestInitializer(googleAccountCredential)
                     .build();
+
+
+            String mAccessToken = "";
+            try {
+                mAccessToken = googleAccountCredential.getToken();
+                log("Access token = " + mAccessToken);
+            } catch (Exception e){
+                loge(e.getMessage());
+            }
+
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpPost httpPost = new HttpPost("https://picasaweb.google.com/data/feed/api/user/default/albumid/default");
+            httpPost.addHeader("Authorization",  "Bearer " + mAccessToken);
+
+            Document htmlDocument = Jsoup.parse(mContent);
+            for (Element imgElement : htmlDocument.select("img")) {
+                String imgLocalSrc = imgElement.attr("src");
+                byte[] imageContent;
+                File image = new File(imgLocalSrc);
+                try {
+                    imageContent = FileUtils.readFileToByteArray(image);
+                } catch (IOException e){
+                    loge(e.getMessage());
+                    return null;
+                }
+
+                httpPost.addHeader("Content-Type", getImageType(imgLocalSrc));
+                // "Slug" header sets the file name of the uploaded image
+                httpPost.addHeader("Slug", image.getName());
+
+                String xmlResponse = "";
+                try {
+                    httpPost.setEntity(new ByteArrayEntity(imageContent));
+                    HttpResponse httpResponse = httpClient.execute(httpPost);
+                    xmlResponse = EntityUtils.toString(httpResponse.getEntity());
+                    log(xmlResponse);
+                } catch (IOException e){
+                    loge(e.getMessage());
+                }
+
+                // by https://stackoverflow.com/users/1818911/su
+                String uploadedImageUrl = "";
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder builder;
+                InputSource source;
+                try {
+                    builder = factory.newDocumentBuilder();
+                    source = new InputSource(new StringReader(xmlResponse));
+                    org.w3c.dom.Document doc = builder.parse(source);
+                    NodeList list = doc.getElementsByTagName("media:content");
+                    uploadedImageUrl = list.item(0).getAttributes().getNamedItem("url").getNodeValue();
+                } catch (Exception e){
+                    loge(e.getMessage());
+                }
+                log(uploadedImageUrl);
+
+                imgElement.attr("src", uploadedImageUrl);
+            }
+
             Post content = new Post();
             content.setId(mId);
             content.setTitle(mTitle);
-            content.setContent(mContent);
+            content.setContent(htmlDocument.html());
             try {
                 Blogger.Posts.Update postUpdateAction = service.posts().update(mapBlogs.get(intSelectedBlogPos), mId, content);
-                Post post = postUpdateAction.execute();
+                postUpdateAction.execute();
             }catch (IOException e){
                 loge("UpdatePostTask: doInBackground: " + e.getMessage());
             }
@@ -1125,7 +1283,7 @@ public class MainActivity extends AppCompatActivity
                     );
             googleAccountCredential.setSelectedAccount(mAccount);
             Blogger service = new Blogger.Builder(HTTP_TRANSPORT, JSON_FACTORY, googleAccountCredential)
-                    .setApplicationName("Blogger")
+                    .setApplicationName("Blogg")
                     .setHttpRequestInitializer(googleAccountCredential)
                     .build();
             Pageviews pageviews = null;
