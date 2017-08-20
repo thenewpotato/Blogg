@@ -7,9 +7,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/blogg_logo_xxxhdpi"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/blogg_logo_xxxhdpi"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
@@ -26,6 +26,7 @@
         <activity android:name=".AddActivity" />
         <activity android:name=".CommentActivity" />
         <activity android:name="com.onegravity.rteditor.media.choose.MediaChooserActivity" />
+        <activity android:name=".CreditsActivity"></activity>
     </application>
 
 </manifest>

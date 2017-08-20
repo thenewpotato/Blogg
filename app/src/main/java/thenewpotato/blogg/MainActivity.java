@@ -85,7 +85,6 @@ import cz.msebera.android.httpclient.impl.client.HttpClientBuilder;
 import cz.msebera.android.httpclient.util.EntityUtils;
 import thenewpotato.blogg.managers.PostsAdapter;
 import thenewpotato.blogg.managers.SharedPreferencesManager;
-import values.AboutFragment;
 
 import static thenewpotato.blogg.Tools.FN_ABOUT;
 import static thenewpotato.blogg.Tools.FN_ACTIVITIES;
@@ -742,7 +741,11 @@ public class MainActivity extends AppCompatActivity
 
         protected void onPostExecute(Bitmap result) {
             int pxSize = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, getResources().getDisplayMetrics());
-            mImageview.setImageBitmap(getCroppedBitmap(getResizedBitmap(result, pxSize, pxSize)));
+            if (result != null) {
+                mImageview.setImageBitmap(getCroppedBitmap(getResizedBitmap(result, pxSize, pxSize)));
+            } else {
+                Toast.makeText(MainActivity.this, getString(R.string.notif_connection_timeout), Toast.LENGTH_LONG).show();
+            }
         }
     }
 

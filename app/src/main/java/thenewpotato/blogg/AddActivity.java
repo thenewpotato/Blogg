@@ -34,17 +34,17 @@ public class AddActivity extends BaseEditActivity{
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // makes sure that the post has content, supposedly, blank posts should not be a problem
-        // however, an issue arises when a post is published under scheduled condition without content
-        // took a while to figure out the problem, turns out, publishing scheduled blank posts causes
-        // broken posts with invalid IDs
-        if(rtEditText.getText().toString().equals("")) {
-            Toast.makeText(this, R.string.notif_blank_post, Toast.LENGTH_SHORT).show();
-            return true;
-        }
-
         switch (item.getItemId()) {
             case R.id.action_post:
+                // makes sure that the post has content, supposedly, blank posts should not be a problem
+                // however, an issue arises when a post is published under scheduled condition without content
+                // took a while to figure out the problem, turns out, publishing scheduled blank posts causes
+                // broken posts with invalid IDs
+                if(rtEditText.getText().toString().equals("")) {
+                    Toast.makeText(this, R.string.notif_blank_post, Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+
                 View dialogView = View.inflate(this, R.layout.dialog_publish, null);
                 final TextView tvDatePicker = (TextView) dialogView.findViewById(R.id.tv_date_picker);
                 final TextView tvTimePicker = (TextView) dialogView.findViewById(R.id.tv_time_picker);
@@ -105,6 +105,15 @@ public class AddActivity extends BaseEditActivity{
                         .show();
                 return true;
             case R.id.action_save_draft:
+                // makes sure that the post has content, supposedly, blank posts should not be a problem
+                // however, an issue arises when a post is published under scheduled condition without content
+                // took a while to figure out the problem, turns out, publishing scheduled blank posts causes
+                // broken posts with invalid IDs
+                if(rtEditText.getText().toString().equals("")) {
+                    Toast.makeText(this, R.string.notif_blank_post, Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+
                 new AlertDialog.Builder(this)
                         .setIcon(R.drawable.ic_mode_edit_black_24dp)
                         .setTitle("Saving Draft")

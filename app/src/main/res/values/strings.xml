@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Blogg</string>
+    <string name="app_ver">1.0–170813</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -57,12 +58,17 @@
     <string name="text_publish_now">Publish this post right now</string>
     <string name="text_schedule_post">Schedule this post at the following time:</string>
     <string name="text_about_1">thenewpotato.blogg</string>
-    <string name="text_about_2">Developed by Tiger Wang(@thenewpotato)</string>
-    <string name="text_about_3">Released under the Apache 2.0 License</string>
-    <string name="text_about_10">© 2017 Tiger Wang</string>
+    <string name="text_about_2">Developed by Tiger Wang (@thenewpotato)</string>
+    <string name="text_about_3">Open source with the Apache 2.0 License</string>
+    <string name="text_about_4">© 2017 Tiger Wang</string>
+    <string name="text_about_github">View this project on GitHub</string>
+    <string name="text_about_ver">Version: </string>
+    <string name="text_about_credits">Credits</string>
+    <string name="text_credits_heading">Blogg uses Open Source components. Their respective license information and source code is listed below. I acknowledge these developers and gratefully thank all of them for contributing to the Open Source.</string>
 
     <string name="notif_blank_post">Post has no content!</string>
-    <string name="notif_error_occured">An error has occured!</string>
+    <string name="notif_error_occured">An error has occurred!</string>
+    <string name="notif_connection_timeout">The connection timed out.</string>
 
     <string name="title_sort">Sort</string>
     <string name="title_a_to_z">A to Z</string>
