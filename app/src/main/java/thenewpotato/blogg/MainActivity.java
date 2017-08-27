@@ -800,12 +800,6 @@ public class MainActivity extends AppCompatActivity
                     helperMapPosts(posts);
                 }
             } catch (IOException e) {
-                new AlertDialog.Builder(MainActivity.this)
-                        .setIcon(R.drawable.ic_mode_edit_black_24dp)
-                        .setTitle(R.string.notif_error_occured)
-                        .setMessage(e.getMessage())
-                        .setNegativeButton("NO!!!", null)
-                        .show();
                 loge("GetListOfPostsTask: doInBackground: IOException: " + e.getMessage());
             }
             return posts;
