@@ -33,6 +33,7 @@ import thenewpotato.blogg.managers.GetDetailedCommentsTask;
 import thenewpotato.blogg.objects.Comment;
 
 import static thenewpotato.blogg.Tools.log;
+import static thenewpotato.blogg.Tools.loge;
 
 public class CommentActivity extends AppCompatActivity {
 
@@ -203,7 +204,7 @@ public class CommentActivity extends AppCompatActivity {
                 Post post = get.execute();
                 return post.getUrl();
             }catch (IOException e){
-                Log.e(TAG, "GUoPT: dIB: " + e.getMessage());
+                loge(e.getMessage());
             }
             return null;
         }
