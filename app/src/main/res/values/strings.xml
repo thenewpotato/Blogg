@@ -16,14 +16,12 @@
 
 <resources>
     <string name="app_name">Blogg</string>
-    <string name="app_ver">1.0–170813</string>
+    <string name="app_ver">1.0–170901</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
 
     <string name="label_subject">Subject</string>
     <string name="label_message">Post content</string>
