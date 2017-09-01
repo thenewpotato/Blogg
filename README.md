@@ -11,7 +11,7 @@ Key features include:
 
 License
 -------
-   Copyright 2017 Tiger Wang
+   Copyright 2017 Jiahua Wang
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
