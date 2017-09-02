@@ -11,9 +11,9 @@ Key features include:
 
 Screenshots
 -----------
-[![Images](https://github.com/thenewpotato/Blogg/blob/master/screenshots/device-2017-09-01-152822.png)]
-[![Images](https://github.com/thenewpotato/Blogg/blob/master/screenshots/device-2017-09-01-152900.png)]
-[![Images](https://github.com/thenewpotato/Blogg/blob/master/screenshots/device-2017-09-01-152658.png)]
+![Images](https://github.com/thenewpotato/Blogg/blob/master/screenshots/device-2017-09-01-152822.png)
+![Images](https://github.com/thenewpotato/Blogg/blob/master/screenshots/device-2017-09-01-152900.png)
+![Images](https://github.com/thenewpotato/Blogg/blob/master/screenshots/device-2017-09-01-152658.png)
 
 License
 -------
