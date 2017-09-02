@@ -302,8 +302,8 @@ public class MainActivity extends AppCompatActivity
             pendingResult.setResultCallback(new ResultCallback<GoogleSignInResult>() {
                 @Override
                 public void onResult(@NonNull GoogleSignInResult result) {
-                    handleSignInResult(result);
                     progressDialog.dismiss();
+                    handleSignInResult(result);
                 }
             });
         }

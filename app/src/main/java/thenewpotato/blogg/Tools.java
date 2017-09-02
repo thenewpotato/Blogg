@@ -94,7 +94,7 @@ public class Tools {
         }
     }
 
-    public final static boolean DEBUG = false;
+    public final static boolean DEBUG = true;
     public static void log(String message) {
         if (DEBUG) {
             String fullClassName = Thread.currentThread().getStackTrace()[3].getClassName();
