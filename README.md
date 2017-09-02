@@ -9,6 +9,12 @@ Key features include:
 4. See how people are reacting to your post: page views and comments
 5. Swiftly switching between all of your blogs
 
+Screenshots
+-----------
+[![Images](https://github.com/thenewpotato/Blogg/blob/master/screenshots/device-2017-09-01-152822.png)]
+[![Images](https://github.com/thenewpotato/Blogg/blob/master/screenshots/device-2017-09-01-152900.png)]
+[![Images](https://github.com/thenewpotato/Blogg/blob/master/screenshots/device-2017-09-01-152658.png)]
+
 License
 -------
    Copyright 2017 Jiahua Wang
