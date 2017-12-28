@@ -27,6 +27,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.content.ContextCompat;
@@ -53,15 +54,21 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.blogger.Blogger;
@@ -136,10 +143,11 @@ public class MainActivity extends AppCompatActivity
     private static final String IMAGE_TYPE_GIF = "image/gif";
     private static final String IMAGE_TYPE_PNG = "image/png";
 
-    GoogleApiClient mGoogleApiClient;
+    private GoogleSignInClient mGoogleSignInClient;
     public static Account mAuthorizedAccount;
     GoogleSignInAccount googleSignInAccount;
     SignInButton buttonSignIn;
+
     String urlUserPhoto;
     SparseArray<String> mapBlogs;
     ArrayList<thenewpotato.blogg.objects.Post> posts;
@@ -273,39 +281,26 @@ public class MainActivity extends AppCompatActivity
                 popup.show(); //showing popup menu
             }
         });
-
         GoogleSignInOptions googleSignInOptions =
                 new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestEmail()
                         .requestScopes(new Scope("https://www.googleapis.com/auth/blogger"), new Scope("https://picasaweb.google.com/data/"))
                         .build();
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, this)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, googleSignInOptions)
-                .build();
+        mGoogleSignInClient = GoogleSignIn.getClient(this, googleSignInOptions);
+    }
 
-        // OptionalPendingResult has migrated here from onStart
-        // putting it in onCreate prevents the overloading of spinner menu and redundant refresh when user returns
-        // to MainActivity from Edit/AddActivity
-        // this placement **might** cause other problems though
-        OptionalPendingResult<GoogleSignInResult> pendingResult =
-                Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
-        if (pendingResult.isDone()) {
-            // There's immediate result available.
-            handleSignInResult(pendingResult.get());
-        } else {
-            // There's no immediate result ready, displays some progress indicator and waits for the
-            // async callback.
-            final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
-            progressDialog.setMessage("Signing in...");
-            progressDialog.show();
-            pendingResult.setResultCallback(new ResultCallback<GoogleSignInResult>() {
-                @Override
-                public void onResult(@NonNull GoogleSignInResult result) {
-                    progressDialog.dismiss();
-                    handleSignInResult(result);
-                }
-            });
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        updateUI(account);
+        if (account != null) {
+            googleSignInAccount = account;
+            mAuthorizedAccount = account.getAccount();
+
+            GetListOfBlogTask task = new GetListOfBlogTask(mAuthorizedAccount);
+            task.execute();
         }
     }
 
@@ -374,8 +369,8 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.button_signout:
                 Tools.log("signOut in process");
-                SignOutTask signOutTask = new SignOutTask(mGoogleApiClient);
-                signOutTask.execute();
+                signOut();
+                revokeAccess();
                 break;
         }
     }
@@ -384,11 +379,8 @@ public class MainActivity extends AppCompatActivity
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == RC_AUTHORIZE){
-            GoogleSignInResult googleSignInResult = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-            if(googleSignInResult.isSuccess()){
-                Tools.log("Authorization Result: Success?: true");
-                handleSignInResult(googleSignInResult);
-            }
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            handleSignInResult(task);
         }else if(resultCode == RC_NEW){
             Tools.log("result from AA: " + data.getStringExtra("content"));
             InsertPostTask task = new InsertPostTask(mAuthorizedAccount, data.getBooleanExtra("isDraft", true), (DateTime) data.getSerializableExtra("schedule"));
@@ -416,54 +408,55 @@ public class MainActivity extends AppCompatActivity
         task.execute(post);
     }
 
-    public void showAuthenticatedUI(){
-        buttonSignIn.setVisibility(View.GONE);
-        buttonSignOut.setVisibility(View.VISIBLE);
-        imageviewAccount.setVisibility(View.VISIBLE);
-        textviewAccountEmail.setVisibility(View.VISIBLE);
-        textviewAccountName.setVisibility(View.VISIBLE);
-        if(googleSignInAccount.getGivenName() != null && googleSignInAccount.getFamilyName() != null &&
-                !googleSignInAccount.getGivenName().equals("null") && !googleSignInAccount.getFamilyName().equals("null")) {
-            textviewAccountName.setText(googleSignInAccount.getGivenName() + " " + googleSignInAccount.getFamilyName());
-        } else{
+    private void updateUI(@Nullable GoogleSignInAccount account) {
+        if (account == null) {
+            buttonSignIn.setVisibility(View.VISIBLE);
+            buttonSignOut.setVisibility(View.GONE);
+            imageviewAccount.setImageDrawable(ContextCompat.getDrawable(this, android.R.drawable.sym_def_app_icon));
+            imageviewAccount.setVisibility(View.GONE);
             textviewAccountName.setText("");
-        }
-        textviewAccountEmail.setText(mAuthorizedAccount.name);
-        Uri uriUserPhoto = googleSignInAccount.getPhotoUrl();
-        if(uriUserPhoto != null) {
-            urlUserPhoto = uriUserPhoto.toString();
-            new DownloadImageTask(imageviewAccount).execute(urlUserPhoto);
-        } else{
-            Tools.log("showAuthenticatedUi: User does not have profile pic");
-        }
-    }
-
-    public void showDeauthenticatedUI(){
-        buttonSignIn.setVisibility(View.VISIBLE);
-        buttonSignOut.setVisibility(View.GONE);
-        imageviewAccount.setImageDrawable(ContextCompat.getDrawable(this, android.R.drawable.sym_def_app_icon));
-        imageviewAccount.setVisibility(View.GONE);
-        textviewAccountName.setText("");
-        textviewAccountEmail.setText("");
-        textviewAccountName.setVisibility(View.GONE);
-        textviewAccountEmail.setVisibility(View.GONE);
-        arrayadapterSpinner.clear();
-        arrayadapterSpinner.notifyDataSetChanged();
-    }
-
-    private void handleSignInResult(GoogleSignInResult googleSignInResult){
-        if (googleSignInResult.isSuccess()) {
-            googleSignInAccount = googleSignInResult.getSignInAccount();
-            if (googleSignInAccount != null) {
-                mAuthorizedAccount = googleSignInAccount.getAccount();
+            textviewAccountEmail.setText("");
+            textviewAccountName.setVisibility(View.GONE);
+            textviewAccountEmail.setVisibility(View.GONE);
+            arrayadapterSpinner.clear();
+            arrayadapterSpinner.notifyDataSetChanged();
+            textviewAccountName.setText("");
+            drawer.openDrawer(Gravity.START);
+        } else {
+            buttonSignIn.setVisibility(View.GONE);
+            buttonSignOut.setVisibility(View.VISIBLE);
+            imageviewAccount.setVisibility(View.VISIBLE);
+            textviewAccountEmail.setVisibility(View.VISIBLE);
+            textviewAccountName.setVisibility(View.VISIBLE);
+            textviewAccountName.setText(account.getGivenName() + " " + account.getFamilyName());
+            textviewAccountEmail.setText(account.getEmail());
+            Uri uriUserPhoto = account.getPhotoUrl();
+            if(uriUserPhoto != null) {
+                urlUserPhoto = uriUserPhoto.toString();
+                new DownloadImageTask(imageviewAccount).execute(urlUserPhoto);
+            } else{
+                Tools.log("showAuthenticatedUi: User does not have profile pic");
             }
-            showAuthenticatedUI();
+        }
+    }
+
+    private void handleSignInResult(Task<GoogleSignInAccount> completedTask){
+        try {
+            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+
+            // Signed in successfully, show authenticated UI.
+            updateUI(account);
+
+            googleSignInAccount = account;
+            mAuthorizedAccount = account.getAccount();
 
             GetListOfBlogTask task = new GetListOfBlogTask(mAuthorizedAccount);
             task.execute();
-        } else {
-            showDeauthenticatedUI();
-            drawer.openDrawer(Gravity.START);
+        } catch (ApiException e) {
+            // The ApiException status code indicates the detailed failure reason.
+            // Please refer to the GoogleSignInStatusCodes class reference for more information.
+            Tools.loge("signInResult:failed code=" + e.getStatusCode());
+            updateUI(null);
         }
     }
 
@@ -518,8 +511,34 @@ public class MainActivity extends AppCompatActivity
     private void authorizeAccess(){
         Tools.log("authorizeAccess in process");
 
-        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_AUTHORIZE);
+    }
+
+    private void signOut() {
+        mGoogleSignInClient.signOut()
+                .addOnCompleteListener(this, new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        // [START_EXCLUDE]
+                        updateUI(null);
+                        // [END_EXCLUDE]
+                    }
+                });
+    }
+    // [END signOut]
+
+    // [START revokeAccess]
+    private void revokeAccess() {
+        mGoogleSignInClient.revokeAccess()
+                .addOnCompleteListener(this, new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        // [START_EXCLUDE]
+                        updateUI(null);
+                        // [END_EXCLUDE]
+                    }
+                });
     }
 
     private void helperMapPosts(PostList postList){
@@ -623,48 +642,6 @@ public class MainActivity extends AppCompatActivity
                 return IMAGE_TYPE_GIF;
             default:
                 return null;
-        }
-    }
-
-    private class SignOutTask extends AsyncTask<Void, Void, Void>{
-        private ProgressDialog progressDialog;
-        GoogleApiClient mGoogleApiClient;
-        SignOutTask(GoogleApiClient googleApiClient){ mGoogleApiClient = googleApiClient; }
-
-        @Override
-        protected void onPreExecute(){
-            super.onPreExecute();
-            progressDialog = new ProgressDialog(MainActivity.this);
-            progressDialog.setMessage("Signing Out...");
-            progressDialog.show();
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids){
-            Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
-                    new ResultCallback<com.google.android.gms.common.api.Status>() {
-                        @Override
-                        public void onResult(@NonNull com.google.android.gms.common.api.Status status) {}
-                    }
-            );
-            Auth.GoogleSignInApi.revokeAccess(mGoogleApiClient).setResultCallback(
-                    new ResultCallback<com.google.android.gms.common.api.Status>() {
-                        @Override
-                        public void onResult(@NonNull com.google.android.gms.common.api.Status status) {
-
-                        }
-                    });
-            mAuthorizedAccount = null;
-            posts.clear();
-            mapBlogs.clear();
-            getSupportFragmentManager().beginTransaction().remove(getSupportFragmentManager().findFragmentById(R.id.framelayout_main)).commit();
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void v){
-            showDeauthenticatedUI();
-            progressDialog.dismiss();
         }
     }
 

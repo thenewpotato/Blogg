@@ -72,7 +72,7 @@ public class Tools {
 
     public static String parseDateTime(DateTime dateTime, Context appContext){
         if(inputFormat == null || outputFormat == null){
-            inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+            inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
             outputFormat = android.text.format.DateFormat.getDateFormat(appContext);
         }
         try {
